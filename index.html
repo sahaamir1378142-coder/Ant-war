@@ -29,10 +29,14 @@ canvas{width:100%;max-width:480px;border-radius:12px;border:1px solid var(--line
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;max-width:360px;width:100%;text-align:center}
 .card button{font-size:17px;margin:6px;padding:9px 22px;border:0;border-radius:9px;background:var(--gold);color:#1b1405;font-weight:bold}
 .arr div{font-size:18px;color:var(--teal)}.gold{color:var(--gold)}
+.how{text-align:right;list-style-type:persian;padding-inline-start:26px;margin:10px 0;line-height:1.9}.how li::marker{color:var(--gold);font-weight:bold}
+.eq{display:inline-block;direction:ltr;unicode-bidi:isolate}
+.mut{color:var(--mut);font-size:14px;margin:6px 0 10px}
+.card button.alt{background:transparent;color:var(--gold);border:1px solid var(--gold)}
 </style></head><body>
 <div id="menu"><h1 id="ttl"></h1><p id="sub"></p><div id="levels"></div></div>
 <div id="game" class="hide">
- <div class="top"><button class="small" id="back">منو</button><b id="lvl"></b><span><button class="small" id="eye">ببین</button> <button class="small" id="help">؟</button> <button class="small" id="snd">♪</button></span></div>
+ <div class="top"><button class="small" id="back"></button><b id="lvl"></b><span><button class="small" id="eye"></button> <button class="small" id="help">؟</button> <button class="small" id="snd">♪</button></span></div>
  <canvas id="cv" width="360" height="200"></canvas>
  <div id="peekui" class="hide"><p id="peekt"></p><button id="go"></button></div>
  <div id="playui" class="hide"><p id="info"></p><div id="nests"></div><div id="bar"></div><button id="atk"></button></div>

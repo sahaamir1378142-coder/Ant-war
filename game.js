@@ -1,6 +1,7 @@
 const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 const $=id=>document.getElementById(id);
 const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const eq=(x,y,z)=>'<span class="eq">'+fa(x)+' × '+fa(y)+' = '+fa(z)+'</span>';
 const angd=(a,b)=>((b-a+3*Math.PI)%(2*Math.PI))-Math.PI;
 let save={stars:[],seen:0},cur=0,sel=new Set(),tries=0,busy=false,ac=null,muted=false,L,mode='none',walkers=[],bt=null,camDir=1,camT0=0;
 try{const s=JSON.parse(localStorage.getItem('ants01'));if(s)save=Object.assign(save,s)}catch(e){}
@@ -11,7 +12,9 @@ const NOTES=[523,587,659,784,880,988,1047];
 const HILL='<svg viewBox="0 0 80 56"><ellipse cx="40" cy="38" rx="37" ry="14" fill="#3f3122"/><ellipse cx="40" cy="34" rx="28" ry="12" fill="#5b4630"/><ellipse cx="40" cy="32" rx="14" ry="6" fill="#0e0906"/><g fill="#3f3122"><circle cx="8" cy="44" r="2"/><circle cx="70" cy="46" r="2.5"/><circle cx="18" cy="51" r="1.6"/><circle cx="60" cy="52" r="1.8"/><circle cx="4" cy="36" r="1.5"/><circle cx="76" cy="38" r="1.5"/></g></svg>';
 const HOLE={e:[36,170],p:[324,170]};
 function show(id){['menu','game'].forEach(s=>$(s).classList.toggle('hide',s!==id));if(id=='menu')mode='none'}
+function labels(){$('back').textContent=T.menu;$('eye').textContent=T.eye}
 function menu(){
+  labels();
   $('ttl').textContent=T.title;$('sub').textContent=T.sub;
   const g=$('levels');g.innerHTML='';
   LEVELS.forEach((l,i)=>{const b=document.createElement('button');
@@ -23,7 +26,7 @@ function menu(){
 }
 function setInfo(){$('info').innerHTML=T.enemy(L.a*L.b)+'<br><small>'+T.ask(L.a*L.b)+'</small>'}
 function help(){const o=$('over');o.classList.remove('hide');
-  o.innerHTML='<div class="card"><h2>'+T.howT+'</h2><p style="text-align:right">'+T.how.join('<br>')+'</p><button id="ok">'+T.ok+'</button></div>';
+  o.innerHTML='<div class="card"><h2>'+T.howT+'</h2><ol class="how">'+T.how.map(x=>'<li>'+x+'</li>').join('')+'</ol><button id="ok">'+T.ok+'</button></div>';
   $('ok').onclick=()=>{o.classList.add('hide');save.seen=1;persist()}}
 function start(i){
   cur=i;L=LEVELS[i];tries=0;sel.clear();busy=false;
@@ -121,10 +124,10 @@ function place(a,s){
   const p=clamp((s-a.st-.3)*a.v/a.dist);let rot=a.ang;
   if(p>.85)rot=a.ang+angd(a.ang,a.face)*ease((p-.85)/.15);
   return{x:a.hx+(a.sx-a.hx)*p,y:a.hy+(a.sy-a.hy)*p,rot,k:1.2,leg:p*a.dist*.7,arr:p>=1}}
-function tag(per,x,y){cx.fillStyle='#333';cx.font='bold 14px Tahoma,sans-serif';cx.fillText('×'+fa(per),x,y)}
+function tag(per,x,y){cx.font='bold 14px Tahoma,sans-serif';cx.lineWidth=3;cx.strokeStyle='#0b1210';cx.strokeText('×'+fa(per),x,y);cx.fillStyle='#ffe08a';cx.fillText('×'+fa(per),x,y)}
 function drawBattle(now){
   const b=bt,s=(now-b.t0)/1000,w=now/1000;
-  bg();cx.textAlign='center';
+  bg();cx.textAlign='center';cx.direction='ltr';
   const arms=[[b.E,'#d64545',1,b.win],[b.P,'#2ec4b6',-1,!b.win]];
   if(b.R)arms.push([b.R,'#a32a2a',1,false]);
   arms.forEach(([A,c,dir,lose])=>A.a.forEach(a=>{
@@ -158,7 +161,7 @@ requestAnimationFrame(loop);
 function attack(){
   if(busy||sel.size==0||mode!='idle')return;busy=true;
   const en=L.a*L.b,pn=sel.size*L.a,rs=pn>en?pn+3-en:0;
-  $('bar').textContent=fa(sel.size)+' × '+fa(L.a)+' = '+fa(pn);
+  $('bar').innerHTML=eq(sel.size,L.a,pn);
   const E=mk(en,4,20,170,1,HOLE.e,.2),P=mk(pn,4,20,190,-1,HOLE.p,.2),tM=Math.max(E.end,P.end);
   let R=null,tC=tM+1.1;
   if(rs){R=mk(rs,3,12,66,1,HOLE.e,tM+.4);tC=R.end+.9}
@@ -171,17 +174,18 @@ function end(pn,en){
   let h='<h2>'+(win?T.win:T.lose)+'</h2>';
   if(win){const s=tries==0?3:tries==1?2:1;
     save.stars[cur]=Math.max(save.stars[cur]||0,s);persist();
-    h+='<p class="gold" style="font-size:26px">'+'★'.repeat(s)+'☆'.repeat(3-s)+'</p><p>'+fa(L.b)+' × '+fa(L.a)+' = '+fa(en)+'</p>';
-    h+=(cur<LEVELS.length-1?'<button id="n">'+T.next+'</button>':'')+'<button id="m">'+T.back+'</button>';
+    h+='<p class="gold" style="font-size:26px">'+'★'.repeat(s)+'☆'.repeat(3-s)+'</p><p>'+eq(L.b,L.a,en)+'</p><p class="mut">'+(s==3?T.perfect:T.starHint)+'</p>';
+    h+=(cur<LEVELS.length-1?'<button id="n">'+T.next+'</button>':'')+(s<3?'<button id="rp" class="alt">'+T.replay3+'</button>':'')+'<button id="m" class="'+(s<3?'alt':'')+'">'+T.back+'</button>';
   }else{
     tries++;
     h+='<p>'+(pn>en?T.tooMany:T.tooFew)+'</p><p>'+T.right+'</p><div class="arr">';
     for(let r=0;r<L.b;r++)h+='<div>'+'● '.repeat(L.a)+'</div>';
-    h+='</div><p>'+fa(L.b)+' × '+fa(L.a)+' = '+fa(en)+'</p><button id="r">'+T.retry+'</button>';
+    h+='</div><p>'+eq(L.b,L.a,en)+'</p><button id="r">'+T.retry+'</button>';
   }
   o.innerHTML='<div class="card">'+h+'</div>';
   if($('n'))$('n').onclick=()=>start(cur+1);
   if($('m'))$('m').onclick=menu;
+  if($('rp'))$('rp').onclick=()=>start(cur);
   if($('r'))$('r').onclick=()=>{sel.clear();busy=false;o.classList.add('hide');document.querySelectorAll('.nest').forEach(x=>x.classList.remove('on'));bar();setInfo();mode='idle'};
 }
 $('atk').onclick=attack;$('back').onclick=menu;
