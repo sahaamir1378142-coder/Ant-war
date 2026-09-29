@@ -28,8 +28,22 @@ function setInfo(){$('info').innerHTML=T.enemy(L.a*L.b)+'<br><small>'+T.ask(L.a*
 function help(){const o=$('over');o.classList.remove('hide');
   o.innerHTML='<div class="card"><h2>'+T.howT+'</h2><ol class="how">'+T.how.map(x=>'<li>'+x+'</li>').join('')+'</ol><button id="ok">'+T.ok+'</button></div>';
   $('ok').onclick=()=>{o.classList.add('hide');save.seen=1;persist()}}
+// سؤال هم‌سطح: برای مرحله‌ای که قبلاً حل شده، جفت (a,b) جدید با «اندازه‌ی» مشابه (حاصل‌ضرب ۰٫۷ تا ۱٫۳۵ برابر) و بدون تکرار سؤال قبلی
+const asked={};
+function variant(i){
+  const base=LEVELS[i],P=base.a*base.b,mx=Math.max(10,base.a,base.b),c=[];
+  for(let a=2;a<=mx;a++)for(let b=2;b<=mx;b++){
+    if(a==base.a&&b==base.b)continue;
+    if(Math.abs(a-base.a)>2||Math.abs(b-base.b)>2)continue;
+    const r=a*b/P;if(r<.7||r>1.35)continue;c.push({a,b,r})}
+  if(!c.length)return base;
+  const used=asked[i]||(asked[i]=[]),key=q=>q.a+'x'+q.b;
+  let pool=c.filter(q=>!used.includes(key(q)));
+  if(!pool.length){asked[i]=[];pool=c.filter(q=>key(q)!=used[used.length-1]);if(!pool.length)pool=c}
+  const q=pool[Math.floor(Math.random()*pool.length)];asked[i].push(key(q));
+  return Object.assign({},base,{a:q.a,b:q.b})}
 function start(i){
-  cur=i;L=LEVELS[i];tries=0;sel.clear();busy=false;
+  cur=i;L=save.stars[i]?variant(i):LEVELS[i];tries=0;sel.clear();busy=false;
   $('over').classList.add('hide');
   $('lvl').textContent=T.level+' '+fa(i+1);setInfo();
   $('atk').textContent=T.attack;$('go').textContent=T.go;
