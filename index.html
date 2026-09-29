@@ -18,9 +18,9 @@ canvas{width:100%;max-width:360px;background:#e8f6ff;border-radius:16px;margin-t
 #nests{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
 .nest{border:3px solid #a0693a;background:#d9a066;border-radius:18px;padding:6px 2px;font-size:13px;min-height:78px}
 .nest.on{background:#8bd450;border-color:#3d8b1f;transform:scale(1.06)}
-.hole{display:block;font-size:22px}
+.hole{display:block;font-size:34px}#peekt{font-size:18px;font-weight:bold}
 #bar{font-size:26px;font-weight:bold;margin:6px}
-#atk{font-size:22px;padding:12px 40px;border:0;border-radius:20px;background:#e53935;color:#fff;box-shadow:0 5px #a52422}
+#atk,#go{font-size:22px;padding:12px 40px;border:0;border-radius:20px;background:#e53935;color:#fff;box-shadow:0 5px #a52422}
 #over{position:fixed;inset:0;background:#0007;display:flex;align-items:center;justify-content:center;padding:16px}
 .card{background:#fff;border-radius:22px;padding:18px;max-width:360px;width:100%;text-align:center}
 .card button{font-size:18px;margin:6px;padding:10px 22px;border:0;border-radius:14px;background:#ffb74d}
@@ -28,11 +28,12 @@ canvas{width:100%;max-width:360px;background:#e8f6ff;border-radius:16px;margin-t
 </style></head><body>
 <div id="menu"><h1 id="ttl"></h1><p id="sub"></p><div id="levels"></div></div>
 <div id="game" class="hide">
- <div class="top"><button class="small" id="back">⬅</button><b id="lvl"></b><button class="small" id="snd">🔊</button></div>
+ <div class="top"><button class="small" id="back">⬅</button><b id="lvl"></b><span><button class="small" id="eye">👀</button> <button class="small" id="snd">🔊</button></span></div>
  <div id="info"></div>
  <canvas id="cv" width="360" height="200"></canvas>
- <p id="hint"></p><div id="nests"></div>
- <div id="bar"></div><button id="atk"></button>
+ <div id="peekui" class="hide"><p id="peekt"></p><button id="go"></button></div>
+ <div id="playui"><p id="hint"></p><div id="nests"></div>
+ <div id="bar"></div><button id="atk"></button></div>
  <div id="over" class="hide"></div>
 </div>
 <script src="text.js"></script><script src="levels.js"></script><script src="game.js"></script>
