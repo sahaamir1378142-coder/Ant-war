@@ -28,7 +28,6 @@ function setInfo(){$('info').innerHTML=T.enemy(L.a*L.b)+'<br><small>'+T.ask(L.a*
 function help(){const o=$('over');o.classList.remove('hide');
   o.innerHTML='<div class="card"><h2>'+T.howT+'</h2><ol class="how">'+T.how.map(x=>'<li>'+x+'</li>').join('')+'</ol><button id="ok">'+T.ok+'</button></div>';
   $('ok').onclick=()=>{o.classList.add('hide');save.seen=1;persist()}}
-// سؤال هم‌سطح: برای مرحله‌ای که قبلاً حل شده، جفت (a,b) جدید با «اندازه‌ی» مشابه (حاصل‌ضرب ۰٫۷ تا ۱٫۳۵ برابر) و بدون تکرار سؤال قبلی
 const asked={};
 function variant(i){
   const base=LEVELS[i],P=base.a*base.b,mx=Math.max(10,base.a,base.b),c=[];
@@ -44,18 +43,21 @@ function variant(i){
   return Object.assign({},base,{a:q.a,b:q.b})}
 function start(i){
   cur=i;L=save.stars[i]?variant(i):LEVELS[i];tries=0;sel.clear();busy=false;
+  const extra=1+Math.floor(Math.random()*4);
   $('over').classList.add('hide');
   $('lvl').textContent=T.level+' '+fa(i+1);setInfo();
   $('atk').textContent=T.attack;$('go').textContent=T.go;
   const n=$('nests');n.innerHTML='';
-  for(let k=0;k<L.b+EXTRA_NESTS;k++){const b=document.createElement('button');b.className='nest';
+  for(let k=0;k<L.b+extra;k++){const b=document.createElement('button');b.className='nest';
     b.innerHTML=HILL;
     b.onclick=()=>{if(busy)return;sel.has(k)?sel.delete(k):sel.add(k);b.classList.toggle('on');beep(sel.has(k)?NOTES[sel.size%7]:380,.1);bar()};
     n.appendChild(b)}
   bar();show('game');peek();if(!save.seen)help();
 }
-function bar(){$('bar').textContent=fa(sel.size)+' '+T.picked}
-// ---- دوربین و داخل لونه ----
+function bar(){
+  if(!sel.size){$('bar').innerHTML='';return}
+  $('bar').innerHTML='<span style="color:var(--gold);letter-spacing:7px;font-size:22px">'+'●'.repeat(sel.size)+'</span>';
+}
 function peek(){
   walkers=Array.from({length:L.a},()=>({x:rnd(90,270),y:rnd(70,130),t:rnd(0,6.28),base:rnd(30,50),z:rnd(0,6),ph:0}));
   $('peekui').classList.add('hide');$('playui').classList.add('hide');
@@ -68,10 +70,10 @@ $('help').onclick=help;
 const S=Math.min(3,Math.max(2,window.devicePixelRatio||2));
 const cv=$('cv'),cx=cv.getContext('2d');cv.width=360*S;cv.height=200*S;
 const SPECK=Array.from({length:40},(_,i)=>({x:(i*97%340)+10,y:(i*53%180)+10,r:1+i%3}));
-// مورچه از بالا دیده میشه (پاها دو طرف، دو چشم) پس هر چرخشی طبیعیه. face: 0 عادی، 1 گیج (چشم ×، دهان ○)، 2 خوشحال
 function ant(x,y,c,w,k,rot,face){cx.save();cx.translate(x,y);cx.rotate(rot);cx.scale(k,k);cx.fillStyle="rgba(0,0,0,.28)";cx.beginPath();cx.ellipse(0,3,14,7,0,0,7);cx.fill();cx.fillStyle=c;cx.strokeStyle=c;cx.lineWidth=2;
   for(let i=-1;i<=1;i++)for(let s=-1;s<=1;s+=2){cx.beginPath();cx.moveTo(i*4,0);cx.lineTo(i*4+Math.sin(w+i*2+(s>0?0:3))*4,s*9);cx.stroke()}
-  cx.lineWidth=1;for(let s=-1;s<=1;s+=2){cx.beginPath();cx.moveTo(13,s*2);cx.lineTo(18,s*6);cx.stroke()}
+  cx.lineWidth=1;
+  for(let s=-1;s<=1;s+=2){const wag=Math.sin(w*2.5+s*1.7)*1.5;cx.beginPath();cx.moveTo(13,s*2);cx.lineTo(18+wag,s*6);cx.stroke()}
   cx.beginPath();cx.ellipse(-7,0,7,5,0,0,7);cx.fill();
   cx.beginPath();cx.ellipse(1,0,4,4,0,0,7);cx.fill();
   cx.beginPath();cx.arc(9,0,5.5,0,7);cx.fill();
@@ -123,9 +125,9 @@ function drawCam(now){
   cave(clamp((u-.55)/.4));
   if(t>=1){if(camDir>0){mode='peek';$('peekui').classList.remove('hide')}else{mode='idle';$('playui').classList.remove('hide')}}
 }
-// ---- جنگ: هر مورچه از سوراخ لونه‌ی خودش، مستقل و با زمان‌بندی خودش میاد بیرون ----
-function mk(n,cols,cap,fx,dir,hole,t0){
-  const per=Math.ceil(n/cap),m=Math.ceil(n/per),a=[];
+// per = هر آیکون چند مورچه است؛ برای هر دو لشکر یکسان (تا لشکر کوچک‌تر بزرگ‌تر دیده نشود)
+function mk(n,cols,per,fx,dir,hole,t0){
+  const m=Math.ceil(n/per),a=[];
   for(let i=0;i<m;i++){
     const sx=fx-dir*(i%cols)*26+rnd(-3,3),sy=58+((i/cols)|0)*20+rnd(-2,2),st=t0+i*.07+rnd(0,.06),v=rnd(105,145);
     const dx=sx-hole[0],dy=sy-hole[1],dist=Math.hypot(dx,dy);
@@ -176,9 +178,10 @@ function attack(){
   if(busy||sel.size==0||mode!='idle')return;busy=true;
   const en=L.a*L.b,pn=sel.size*L.a,rs=pn>en?pn+3-en:0;
   $('bar').innerHTML=eq(sel.size,L.a,pn);
-  const E=mk(en,4,20,170,1,HOLE.e,.2),P=mk(pn,4,20,190,-1,HOLE.p,.2),tM=Math.max(E.end,P.end);
+  const per=Math.ceil(Math.max(en,pn)/20);
+  const E=mk(en,4,per,170,1,HOLE.e,.2),P=mk(pn,4,per,190,-1,HOLE.p,.2),tM=Math.max(E.end,P.end);
   let R=null,tC=tM+1.1;
-  if(rs){R=mk(rs,3,12,66,1,HOLE.e,tM+.4);tC=R.end+.9}
+  if(rs){R=mk(rs,3,Math.max(per,Math.ceil(rs/12)),66,1,HOLE.e,tM+.4);tC=R.end+.9}
   bt={t0:performance.now(),en,pn,win:pn==en,E,P,R,tM,tC,tEnd:tC+1.6,hit:0,rh:0};
   mode='battle';beep(330,.1);
 }
